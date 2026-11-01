@@ -1,5 +1,4 @@
-@'
-__pycache__/
+﻿__pycache__/
 *.pyc
 .venv/
 .env
@@ -13,4 +12,3 @@ dist/
 build/
 .idea/
 .vscode/
-'@ | Set-Content .gitignore
