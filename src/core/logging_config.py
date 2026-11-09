@@ -1,8 +1,8 @@
-# src/logging_config.py
+﻿# src/logging_config.py
 import logging
 import sys
 
-from config import get_settings
+from src.core.config import get_settings
 
 def setup_logging() -> None:
   settings = get_settings()

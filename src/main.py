@@ -1,24 +1,10 @@
-import logging
-from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import get_settings
-from logging_config import setup_logging
-
-logger = logging.getLogger(__name__)
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-  settings = get_settings()
-  logger.info("starting %s (%s)", settings.app_name, settings.app_env)
-  # startup: DB pool init goes here (db_pool_min / db_pool_max)
-  yield
-  # shutdown: DB pool close goes here
-  logger.info("shutting down %s", settings.app_name)
+from src.api.health import router as health_router
+from src.core.config import get_settings
+from src.core.logging_config import setup_logging
+from src.dependencies.lifespan import lifespan
 
 
 def create_app() -> FastAPI:
@@ -34,11 +20,9 @@ def create_app() -> FastAPI:
     allow_headers=["*"],
   )
 
-  @app.get("/health", tags=["system"])
-  async def health() -> dict[str, str]:
-    return {"status": "ok"}
-
+  app.include_router(health_router)
   # routers get included here as layers are built
   return app
+
 
 app = create_app()
