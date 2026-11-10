@@ -1,10 +1,12 @@
 ﻿# src/api/health.py
+from typing import Annotated
+
 import asyncpg
 from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel
 
 from src.dependencies.database import get_pool
-from src.repositories.postgres.connection import ping
+from src.repositories.connection import ping
 
 router = APIRouter(tags=["health"])
 
@@ -17,7 +19,7 @@ class HealthResponse(BaseModel):
 @router.get("/health", response_model=HealthResponse)
 async def health(
   response: Response,
-  pool: asyncpg.Pool = Depends(get_pool),
+  pool: Annotated[asyncpg.Pool, Depends(get_pool)],
 ) -> HealthResponse:
   try:
     db_ok = await ping(pool)

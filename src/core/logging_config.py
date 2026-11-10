@@ -4,6 +4,7 @@ import sys
 
 from src.core.config import get_settings
 
+
 def setup_logging() -> None:
   settings = get_settings()
   handler = logging.StreamHandler(sys.stdout)
