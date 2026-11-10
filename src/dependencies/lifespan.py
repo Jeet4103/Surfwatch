@@ -5,13 +5,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from src.core.config import get_settings
-from src.repositories.postgres.connection import close_pool, create_pool
+from src.repositories.connection import close_pool, create_pool
 
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
   settings = get_settings()
   logger.info("starting %s (%s)", settings.app_name, settings.app_env)
   app.state.db_pool = await create_pool(settings)

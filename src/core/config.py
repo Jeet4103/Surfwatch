@@ -25,9 +25,14 @@ class Settings(BaseSettings):
   refresh_token_ttl_days: int = Field(gt=0)
 
   log_format: str = "%(asctime)s %(levelname)s %(name)s %(message)s"
+  
+  pagination_default_page_size: int = Field(ge=1)
+  pagination_max_page_size: int = Field(ge=1)
 
   @model_validator(mode="after")
   def _check_pool_sizes(self) -> "Settings":
+    if self.pagination_default_page_size > self.pagination_max_page_size:
+      raise ValueError("PAGINATION_DEFAULT_PAGE_SIZE must be <= PAGINATION_MAX_PAGE_SIZE")
     if self.db_pool_min_size > self.db_pool_max_size:
       raise ValueError("DB_POOL_MIN_SIZE must be <= DB_POOL_MAX_SIZE")
     return self

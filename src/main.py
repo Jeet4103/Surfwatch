@@ -1,8 +1,9 @@
 ﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.health import router as health_router
+from src.api.router import api_router
 from src.core.config import get_settings
+from src.core.errors import register_error_handlers
 from src.core.logging_config import setup_logging
 from src.dependencies.lifespan import lifespan
 
@@ -20,8 +21,8 @@ def create_app() -> FastAPI:
     allow_headers=["*"],
   )
 
-  app.include_router(health_router)
-  # routers get included here as layers are built
+  app.include_router(api_router)
+  register_error_handlers(app)
   return app
 
 
