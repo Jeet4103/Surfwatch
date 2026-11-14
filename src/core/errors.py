@@ -45,6 +45,27 @@ class AppError(Exception):
     super().__init__(self.message)
 
 
+class CustomError(AppError):
+  """Reusable application error with a caller-defined message and status.
+
+  Example: ``raise CustomError("Auth service unavailable", status_code=503)``.
+  """
+
+  code = "CUSTOM_ERROR"
+
+  def __init__(
+    self,
+    message: str,
+    *,
+    status_code: int = 500,
+    code: str = "CUSTOM_ERROR",
+    headers: dict[str, str] | None = None,
+  ) -> None:
+    self.code = code
+    self.status_code = status_code
+    super().__init__(message, headers=headers)
+
+
 class BadRequest(AppError):
   code = ErrorCode.BAD_REQUEST
   status_code = 400
