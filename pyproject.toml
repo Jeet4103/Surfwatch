@@ -9,7 +9,8 @@ dependencies = [
     "pydantic",
     "pydantic-settings",
     "psycopg[binary,pool]",
-    "pyjwt",
+    "asyncpg",
+    "pyjwt[crypto]",
     "argon2-cffi",
     "python-json-logger",
 ]

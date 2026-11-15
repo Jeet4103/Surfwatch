@@ -14,6 +14,17 @@ UP_MARKER = "-- migrate:up"
 DOWN_MARKER = "-- migrate:down"
 NAME_RE = re.compile(r"^(\d+)_[a-z0-9_]+\.sql$")
 RESERVED = {"status", "rollback"}
+# 001 was tightened after its original deployment form. Accept the original
+# checksum only while the reviewed replacement file remains byte-for-byte fixed.
+CHECKSUM_COMPATIBILITY: dict[str, tuple[str, frozenset[str]]] = {
+    "auth/001_create_users.sql": (
+        "1cf4e99bab5d5aed23a262f8d2a82f0c6e5db81dbc5ad92f6f754fc0067b8266",
+        frozenset({
+            "3c78acb89422366b2059221e1290a989ce8ebdbf5471ccffaa6ec6649e109271",
+            "0dbea54704157febce22efe12709873e07e1c92d7ca4fe89859cd692c84b4b91",
+        }),
+    ),
+}
 
 USAGE = """usage:
   python migrate                         apply all pending migrations
@@ -106,7 +117,13 @@ async def get_applied(conn: asyncpg.Connection, files: list[Migration]) -> list[
 
     applied = sorted((by_version[v] for v in rows), key=lambda m: m.number)
     for m in applied:
-        if rows[m.version] != m.checksum:
+        compatible = CHECKSUM_COMPATIBILITY.get(m.version)
+        is_compatible_rewrite = (
+            compatible is not None
+            and compatible[0] == m.checksum
+            and rows[m.version] in compatible[1]
+        )
+        if rows[m.version] != m.checksum and not is_compatible_rewrite:
             fail(f"checksum mismatch (file edited after apply): {m.version}")
     return applied
 
@@ -216,8 +233,10 @@ async def main(argv: list[str]) -> None:
         else:
             await cmd_status(conn, files)
     finally:
-        await conn.execute("SELECT pg_advisory_unlock($1)", ADVISORY_LOCK_ID)
-        await conn.close()
+        try:
+            await conn.execute("SELECT pg_advisory_unlock($1)", ADVISORY_LOCK_ID)
+        finally:
+            await conn.close()
 
 
 if __name__ == "__main__":
