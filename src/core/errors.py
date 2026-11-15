@@ -152,6 +152,12 @@ def register_error_handlers(app: FastAPI) -> None:
   async def handle_app_error(request: Request, exc: AppError) -> JSONResponse:
     if exc.status_code >= 500:
       logger.error("app error on %s %s: %s", request.method, request.url.path, exc.code)
+      return _error_response(
+        exc.status_code,
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        "Internal server error",
+        headers=exc.headers,
+      )
     return _error_response(exc.status_code, exc.code, exc.message, headers=exc.headers)
 
   @app.exception_handler(RequestValidationError)
@@ -172,10 +178,12 @@ def register_error_handlers(app: FastAPI) -> None:
   async def handle_http_exception(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     if exc.status_code >= 500:
       code = ErrorCode.INTERNAL_SERVER_ERROR
+      message = "Internal server error"
     else:
       code = _HTTP_STATUS_CODES.get(exc.status_code, ErrorCode.BAD_REQUEST)
+      message = str(exc.detail)
     return _error_response(
-      exc.status_code, code, str(exc.detail), headers=getattr(exc, "headers", None)
+      exc.status_code, code, message, headers=getattr(exc, "headers", None)
     )
 
   @app.exception_handler(Exception)
