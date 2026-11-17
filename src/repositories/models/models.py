@@ -1,7 +1,18 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
+from typing import TypeVar
 
+import asyncpg
+
+T = TypeVar("T")
+
+def map_row(model: type[T], row: asyncpg.Record, **transforms) -> T:
+  data = dict(row)
+  for column, fn in transforms.items():
+    if data.get(column) is not None:
+      data[column] = fn(data[column])
+  return model(**data)
 
 class RevokeReason(StrEnum):
   LOGOUT = "logout"

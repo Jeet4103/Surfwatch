@@ -4,7 +4,7 @@ from typing import Any
 
 import asyncpg
 
-from src.repositories.models.models import AuthSession
+from src.repositories.models.models import map_row, AuthSession
 from src.repositories.session import SessionRepository
 
 _COLUMNS = (
@@ -22,20 +22,8 @@ def _parse_ip(value: str | None):
     return None
 
 
-def _to_session(row: asyncpg.Record) -> AuthSession:
-  ip = row["ip_address"]
-  return AuthSession(
-    id=row["id"],
-    user_id=row["user_id"],
-    device_name=row["device_name"],
-    ip_address=str(ip) if ip is not None else None,
-    user_agent=row["user_agent"],
-    created_at=row["created_at"],
-    last_active_at=row["last_active_at"],
-    expires_at=row["expires_at"],
-    revoked_at=row["revoked_at"],
-    revoke_reason=row["revoke_reason"],
-  )
+def _to_session(row):
+  return map_row(AuthSession, row, ip_address=str)
 
 
 class PostgresSessionRepository(SessionRepository):
@@ -45,17 +33,16 @@ class PostgresSessionRepository(SessionRepository):
   def _db(self, conn: Any):
     return conn if conn is not None else self._pool
 
-  async def create(
-    self,
-    *,
-    user_id: int,
-    device_name: str | None,
-    ip_address: str | None,
-    user_agent: str | None,
-    now: datetime,
-    expires_at: datetime,
-    conn: Any = None,
-  ) -> AuthSession:
+  async def create(self,
+                  *,
+                  user_id: int,
+                  device_name: str | None,
+                  ip_address: str | None,
+                  user_agent: str | None,
+                  now: datetime,
+                  expires_at: datetime,
+                  conn: Any = None,
+                ) -> AuthSession:
     row = await self._db(conn).fetchrow(
       f"""
       INSERT INTO auth_sessions
@@ -68,9 +55,8 @@ class PostgresSessionRepository(SessionRepository):
     return _to_session(row)
 
   async def get_by_id(self, session_id: int, *, conn: Any = None) -> AuthSession | None:
-    row = await self._db(conn).fetchrow(
-      f"SELECT {_COLUMNS} FROM auth_sessions WHERE id = $1", session_id
-    )
+   
+    row = await self._db(conn).fetchrow(f"""SELECT {_COLUMNS} FROM auth_sessions WHERE id = $1""", session_id )
     return _to_session(row) if row else None
 
   async def list_active_by_user(self, user_id: int, now: datetime, *, conn: Any = None) -> list[AuthSession]:
@@ -84,9 +70,8 @@ class PostgresSessionRepository(SessionRepository):
     )
     return [_to_session(r) for r in rows]
 
-  async def revoke(
-    self, session_id: int, user_id: int | None, reason: str, now: datetime, *, conn: Any = None
-  ) -> bool:
+  async def revoke(self, session_id: int, user_id: int | None, reason: str, now: datetime, *, conn: Any = None) -> bool:
+   
     row = await self._db(conn).fetchrow(
       """
       UPDATE auth_sessions
@@ -98,9 +83,8 @@ class PostgresSessionRepository(SessionRepository):
     )
     return row is not None
 
-  async def revoke_all_for_user(
-    self, user_id: int, reason: str, now: datetime, *, except_session_id: int | None = None, conn: Any = None
-  ) -> int:
+  async def revoke_all_for_user(self, user_id: int, reason: str, now: datetime, *, except_session_id: int | None = None, conn: Any = None) -> int:
+    
     rows = await self._db(conn).fetch(
       """
       UPDATE auth_sessions
@@ -112,9 +96,8 @@ class PostgresSessionRepository(SessionRepository):
     )
     return len(rows)
 
-  async def touch(
-    self, session_id: int, now: datetime, min_interval_seconds: float, *, conn: Any = None
-  ) -> None:
+  async def touch(self, session_id: int, now: datetime, min_interval_seconds: float, *, conn: Any = None) -> None:
+    
     # only writes when last_active_at is older than the interval: avoids a write per request
     await self._db(conn).execute(
       """
