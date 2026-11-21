@@ -18,7 +18,11 @@ async def open_test_pool() -> asyncpg.Pool:
 
 async def create_user(pool: asyncpg.Pool, suffix: str) -> int:
   email = f"{uuid.uuid4().hex[:12]}{suffix}"
-  return await pool.fetchval("INSERT INTO users (email) VALUES ($1) RETURNING id", email)
+  return await pool.fetchval(
+    "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id",
+    email,
+    "!test-not-a-real-hash",
+  )
 
 
 async def delete_users(pool: asyncpg.Pool, suffix: str) -> None:

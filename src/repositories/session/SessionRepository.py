@@ -104,7 +104,7 @@ class PostgresSessionRepository(SessionRepository):
       UPDATE auth_sessions
       SET last_active_at = $2
       WHERE id = $1 AND revoked_at IS NULL
-        AND last_active_at < $2 - make_interval(secs => $3::float8)
+        AND last_active_at + make_interval(secs => $3::float8) < $2::timestamptz
       """,
       session_id, now, float(min_interval_seconds),
     )
