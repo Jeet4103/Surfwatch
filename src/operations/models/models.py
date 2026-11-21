@@ -15,3 +15,12 @@ class Session(BaseModel):
   last_active_at: datetime
   expires_at: datetime
   is_current: bool = False
+  
+class User(BaseModel):
+  model_config = ConfigDict(frozen=True, from_attributes=True)
+
+  id: int
+  email: str
+  is_active: bool
+  is_verified: bool
+  created_at: datetime 

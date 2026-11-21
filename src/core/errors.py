@@ -18,7 +18,7 @@ class ErrorCode(StrEnum):
   UNAUTHORIZED = "UNAUTHORIZED"
   INSUFFICIENT_PERMISSIONS = "INSUFFICIENT_PERMISSIONS"
   RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND"
-  CONFLICT = "CONFLICT"
+  RESOURCE_STATE_CONFLICT = "RESOURCE_STATE_CONFLICT"
   RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"
   INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
 
@@ -91,7 +91,7 @@ class NotFound(AppError):
 
 
 class Conflict(AppError):
-  code = ErrorCode.CONFLICT
+  code = ErrorCode.RESOURCE_STATE_CONFLICT
   status_code = 409
   message = "Conflict with the current state of the resource"
 
@@ -126,9 +126,12 @@ def _error_response(
   details: list[dict[str, Any]] | None = None,
   headers: dict[str, str] | None = None,
 ) -> JSONResponse:
-  error: dict[str, Any] = {"code": str(code), "message": message}
-  if details:
-    error["details"] = details
+  error: dict[str, Any] = {
+    "status_code": status_code,
+    "code": str(code),
+    "message": message,
+    "details": details,
+  }
   return JSONResponse(
     status_code=status_code,
     content={"success": False, "error": error},
@@ -141,7 +144,7 @@ _HTTP_STATUS_CODES: dict[int, ErrorCode] = {
   401: ErrorCode.UNAUTHORIZED,
   403: ErrorCode.INSUFFICIENT_PERMISSIONS,
   404: ErrorCode.RESOURCE_NOT_FOUND,
-  409: ErrorCode.CONFLICT,
+  409: ErrorCode.RESOURCE_STATE_CONFLICT,
   422: ErrorCode.VALIDATION_ERROR,
   429: ErrorCode.RATE_LIMIT_EXCEEDED,
 }

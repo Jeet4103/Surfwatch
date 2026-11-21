@@ -38,3 +38,15 @@ class AuthSession:
 
   def is_active(self, now: datetime) -> bool:
     return self.revoked_at is None and self.expires_at > now
+
+
+@dataclass(frozen=True)
+class AuthUser:
+  id: int
+  email: str
+  password_hash: str
+  is_active: bool
+  is_verified: bool
+  token_version: int
+  created_at: datetime
+  updated_at: datetime
