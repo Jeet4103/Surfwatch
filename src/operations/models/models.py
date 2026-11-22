@@ -23,4 +23,5 @@ class User(BaseModel):
   email: str
   is_active: bool
   is_verified: bool
-  created_at: datetime 
+  token_version: int
+  created_at: datetime

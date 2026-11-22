@@ -8,7 +8,7 @@ from src.core.errors import ValidationFailed
 from src.core.security.password import PasswordService
 from src.operations.auth.AuthOperation import EmailAlreadyRegistered, UserOperation
 from src.repositories.auth.AuthRepository import PostgresUserRepository
-from src.repositories.auth.AuthFakeRepository import FakeUserRepository
+from src.repositories.auth.AuthFakeRepository import UserFakeRepository
 from tests.pg import delete_users, open_test_pool
 
 SUFFIX = "@user-integration.test"
@@ -27,7 +27,7 @@ class Env:
 @pytest.fixture(params=["fake", "postgres"])
 async def env(request):
   if request.param == "fake":
-    yield Env(UserOperation(FakeUserRepository(), passwords), None)
+    yield Env(UserOperation(UserFakeRepository(), passwords), None)
     return
 
   pool = await open_test_pool()  # skips when TEST_DATABASE_URL is not set

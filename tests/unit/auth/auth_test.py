@@ -3,13 +3,13 @@ import pytest
 from src.core.errors import ValidationFailed
 from src.core.security.password import PasswordService
 from src.operations.auth.AuthOperation import EmailAlreadyExistsError, UserOperation
-from src.repositories.auth.AuthFakeRepository import FakeUserRepository
+from src.repositories.auth.AuthFakeRepository import UserFakeRepository
 
 
 @pytest.fixture
 def ops() -> UserOperation:
   passwords = PasswordService(time_cost=1, memory_cost_kib=8, parallelism=1)
-  return UserOperation(FakeUserRepository(), passwords)
+  return UserOperation(UserFakeRepository(), passwords)
 
 
 

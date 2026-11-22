@@ -27,3 +27,11 @@ class PostgresUserRepository(UserRepository):
     except asyncpg.UniqueViolationError as exc:
       raise EmailAlreadyExistsError from exc
     return map_row(AuthUser, row)
+  
+  
+  async def get_by_email(self, *, email: str, conn: Any = None) -> AuthUser | None:
+    row = await self._db(conn).fetchrow(
+      f"SELECT {_COLUMNS} FROM users WHERE email = $1",  # noqa: S608
+      email,
+    )
+    return map_row(AuthUser, row) if row is not None else None
