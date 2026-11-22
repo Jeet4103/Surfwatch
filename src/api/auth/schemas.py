@@ -1,7 +1,7 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, Field
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -26,3 +26,16 @@ class UserResponse(BaseModel):
   email: str
   is_verified: bool
   created_at: datetime
+  
+class LoginRequest(BaseModel):
+  email: str = Field(min_length=1, max_length=255)
+  password: str = Field(min_length=1, max_length=128)  # cap avoids hashing huge inputs
+  device_name: str | None = Field(default=None, max_length=150)
+
+
+class TokenResponse(BaseModel):
+  access_token: str
+  refresh_token: str
+  token_type: str = "bearer"
+  expires_in: int
+  user: UserResponse  

@@ -50,3 +50,16 @@ class AuthUser:
   token_version: int
   created_at: datetime
   updated_at: datetime
+
+
+@dataclass(frozen=True)
+class AuthRefreshToken:
+  id: int
+  session_id: int
+  token_hash: str
+  parent_token_id: int | None
+  replaced_by_id: int | None
+  created_at: datetime
+  expires_at: datetime
+  used_at: datetime | None
+  revoked_at: datetime | None
