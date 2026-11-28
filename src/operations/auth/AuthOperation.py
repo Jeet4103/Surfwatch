@@ -64,3 +64,7 @@ class UserOperation:
     if user is None or not ok or not user.is_active:
       raise InvalidCredentials()
     return _to_output(user)
+  
+  async def get_by_id(self, user_id: int, *, conn: Any = None) -> User | None:
+    user = await self._repo.get_by_id(user_id=user_id, conn=conn)
+    return _to_output(user) if user is not None else None

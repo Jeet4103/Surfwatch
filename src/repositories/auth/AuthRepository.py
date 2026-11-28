@@ -35,3 +35,10 @@ class PostgresUserRepository(UserRepository):
       email,
     )
     return map_row(AuthUser, row) if row is not None else None
+  
+  async def get_by_id(self, *, user_id: int, conn: Any = None) -> AuthUser | None:
+    row = await self._db(conn).fetchrow(
+      f"SELECT {_COLUMNS} FROM users WHERE id = $1",  # noqa: S608
+      user_id,
+    )
+    return map_row(AuthUser, row) if row is not None else None

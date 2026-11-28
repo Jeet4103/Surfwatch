@@ -32,3 +32,6 @@ class UserFakeRepository(UserRepository):
   
   async def get_by_email(self, *, email: str, conn: Any = None) -> AuthUser | None:
     return next((u for u in self._rows.values() if u.email.lower() == email.lower()), None)
+  
+  async def get_by_id(self, *, user_id: int, conn: Any = None) -> AuthUser | None:
+    return self._rows.get(user_id)
