@@ -14,3 +14,7 @@ class UserRepository(ABC):
   @abstractmethod
   async def get_by_email(self, *, email: str, conn: Any = None) -> AuthUser | None:
     pass
+  
+  async def get_by_id(self, *, user_id: int, conn: Any = None) -> AuthUser | None:
+    pass
+  

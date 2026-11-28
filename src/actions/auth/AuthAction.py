@@ -5,10 +5,11 @@ from typing import Any
 
 from src.core.security.jwt import JWTService
 from src.operations.auth.AuthOperation import UserOperation
-from src.operations.models.models import User
+from src.operations.models.models import User, Session
 from src.operations.refresh_token.RefreshTokenOperation import RefreshTokenOperation
 from src.operations.session.SessionOperation import SessionOperation
-
+from src.core.errors import NotFound
+from src.repositories.models.models import RevokeReason
 
 @dataclass(frozen=True)
 class LoginResult:
@@ -66,3 +67,17 @@ class AuthAction:
       expires_in=self._jwt.access_ttl_seconds,
       user=user,
     )
+    
+  async def logout(self, *, user_id: int, session_id: int) -> None:
+    await self._sessions.revoke(session_id, user_id, RevokeReason.LOGOUT)
+    
+  async def logout_all(self, *, user_id: int, keep_session_id: int | None = None) -> int:
+    return await self._sessions.revoke_all(user_id, RevokeReason.LOGOUT_ALL, except_session_id=keep_session_id)
+  
+  async def list_sessions(self, *, user_id: int, current_session_id: int | None = None) -> list[Session]:
+    return await self._sessions.list_active(user_id, current_session_id=current_session_id)
+  
+  async def revoke_session(self, *, user_id: int, session_id: int) -> None:
+    if not await self._sessions.revoke(session_id, user_id, RevokeReason.USER_REVOKED):
+      raise NotFound("Session not found")
+    

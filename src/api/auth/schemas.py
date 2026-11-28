@@ -39,3 +39,19 @@ class TokenResponse(BaseModel):
   token_type: str = "bearer"
   expires_in: int
   user: UserResponse  
+
+class SessionResponse(BaseModel):
+  model_config = ConfigDict(from_attributes=True)
+
+  id: int
+  device_name: str | None
+  ip_address: str | None
+  user_agent: str | None
+  created_at: datetime
+  last_active_at: datetime
+  expires_at: datetime
+  is_current: bool
+
+
+class LogoutAllResponse(BaseModel):
+  revoked: int
